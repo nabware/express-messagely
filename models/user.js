@@ -6,9 +6,6 @@ const { BCRYPT_WORK_FACTOR } = require("../config");
 const { NotFoundError } = require("../expressError");
 
 const USERNAME_NOT_FOUND_MESSAGE = "Could not find username: ";
-const MESSAGES_FROM_NOT_FOUND = "Could not find messages from: ";
-const MESSAGES_TO_NOT_FOUND = "Could not find messages to: ";
-
 
 /** User of the site. */
 
@@ -110,10 +107,6 @@ class User {
         JOIN users ON users.username = messages.to_username
         WHERE from_username = $1`, [username]);
 
-    if (results.rowCount === 0) {
-      //TODO: maybe diff message???
-      throw new NotFoundError(`${MESSAGES_FROM_NOT_FOUND}${username}`);
-    }
     const messages = results.rows.map(m => {
       return {
         id: m.id,
