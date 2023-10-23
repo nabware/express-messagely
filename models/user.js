@@ -44,18 +44,21 @@ class User {
       [username]);
     const user = result.rows[0];
 
-    if (user) {
-      if (await bcrypt.compare(password, user.password) === true) {
-        return true;
-      }
-    }
-
-    return false;
+    return user && await bcrypt.compare(password, user.password);
   }
 
   /** Update last_login_at for user */
 
   static async updateLoginTimestamp(username) {
+    const results = await db.query(
+      `UPDATE users SET last_login_at = current_timestamp
+        WHERE username = $1
+        RETURNING username`,
+      [username]);
+
+    if (results.rowCount === 0) {
+      throw new NotFoundError(`${USERNAME_NOT_FOUND_MESSAGE}${username}`);
+    }
   }
 
   /** All: basic info on all users:
@@ -63,7 +66,7 @@ class User {
 
   static async all() {
     const results = await db.query(`
-      SELECT username, first_name, last_name FROM users`
+      SELECT username, first_name, last_name FROM users ORDER BY username`
     );
 
     return results.rows;
@@ -122,7 +125,6 @@ class User {
       };
     });
 
-
     return messages;
   }
 
@@ -135,6 +137,28 @@ class User {
    */
 
   static async messagesTo(username) {
+    const results = await db.query(`
+    SELECT id, from_username, first_name, last_name, phone, body, sent_at, read_at
+      FROM messages
+      JOIN users ON users.username = messages.from_username
+      WHERE to_username = $1`, [username]);
+
+    const messages = results.rows.map(m => {
+      return {
+        id: m.id,
+        from_user: {
+          username: m.from_username,
+          first_name: m.first_name,
+          last_name: m.last_name,
+          phone: m.phone
+        },
+        body: m.body,
+        sent_at: m.sent_at,
+        read_at: m.read_at
+      };
+    });
+
+    return messages;
   }
 }
 
