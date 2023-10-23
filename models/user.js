@@ -3,6 +3,12 @@
 const db = require("../db");
 const bcrypt = require("bcrypt");
 const { BCRYPT_WORK_FACTOR } = require("../config");
+const { NotFoundError } = require("../expressError");
+
+const USERNAME_NOT_FOUND_MESSAGE = "Could not find username: ";
+const MESSAGES_FROM_NOT_FOUND = "Could not find messages from: ";
+const MESSAGES_TO_NOT_FOUND = "Could not find messages to: ";
+
 
 /** User of the site. */
 
@@ -59,6 +65,12 @@ class User {
    * [{username, first_name, last_name}, ...] */
 
   static async all() {
+    const results = await db.query(`
+      SELECT username, first_name, last_name FROM users`
+    );
+
+    return results.rows;
+    //return results.rows.map(u => new User(u));
   }
 
   /** Get: get user by username
@@ -71,6 +83,16 @@ class User {
    *          last_login_at } */
 
   static async get(username) {
+    const results = await db.query(`
+      SELECT username, first_name, last_name, phone, join_at, last_login_at
+        FROM users
+        WHERE username = $1`, [username]);
+
+    if (results.rowCount === 0) {
+      throw new NotFoundError(`${USERNAME_NOT_FOUND_MESSAGE}${username}`);
+    }
+    const user = results.rows[0];
+    return user;
   }
 
   /** Return messages from this user.
@@ -82,6 +104,33 @@ class User {
    */
 
   static async messagesFrom(username) {
+    const results = await db.query(`
+      SELECT id, to_username, first_name, last_name, phone, body, sent_at, read_at
+        FROM messages
+        JOIN users ON users.username = messages.to_username
+        WHERE from_username = $1`, [username]);
+
+    if (results.rowCount === 0) {
+      //TODO: maybe diff message???
+      throw new NotFoundError(`${MESSAGES_FROM_NOT_FOUND}${username}`);
+    }
+    const messages = results.rows.map(m => {
+      return {
+        id: m.id,
+        to_user: {
+          username: m.to_username,
+          first_name: m.first_name,
+          last_name: m.last_name,
+          phone: m.phone
+        },
+        body: m.body,
+        sent_at: m.sent_at,
+        read_at: m.read_at
+      };
+    });
+
+
+    return messages;
   }
 
   /** Return messages to this user.
