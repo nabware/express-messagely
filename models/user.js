@@ -70,7 +70,6 @@ class User {
     );
 
     return results.rows;
-    //return results.rows.map(u => new User(u));
   }
 
   /** Get: get user by username

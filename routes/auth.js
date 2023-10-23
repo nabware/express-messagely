@@ -22,8 +22,8 @@ router.post("/login", async function (req, res, next) {
   const token = jwt.sign({ username }, SECRET_KEY);
   await User.updateLoginTimestamp(username);
 
-  return res.json({ token });
-})
+  return res.status(201).json({ token });
+});
 
 
 /** POST /register: registers, logs in, and returns token.
@@ -41,6 +41,6 @@ router.post("/register", async function (req, res, next) {
   await User.updateLoginTimestamp(user.username);
 
   return res.json({ token });
-})
+});
 
 module.exports = router;
