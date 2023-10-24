@@ -4,7 +4,9 @@
 
 
 const express = require("express");
+const path = require('path');
 const cors = require("cors");
+const nunjucks = require("nunjucks");
 const { authenticateJWT } = require("./middleware/auth");
 
 const { NotFoundError } = require("./expressError");
@@ -20,15 +22,24 @@ app.use(cors());
 // get auth token for all routes
 app.use(authenticateJWT);
 
+app.use(express.static(path.join(__dirname,'static')));
+
+nunjucks.configure("templates", {
+  autoescape: true,
+  express: app,
+});
+
 /** routes */
 
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
 const messageRoutes = require("./routes/messages");
+const rootRoutes = require("./routes/root");
 
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/messages", messageRoutes);
+app.use("/", rootRoutes);
 
 
 /** 404 handler: matches unmatched routes; raises NotFoundError. */
