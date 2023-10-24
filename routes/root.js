@@ -22,12 +22,7 @@ router.get("/login", async function (req, res, next) {
 /**
  * Return my messages
  */
-router.get("/my-messages/:username", ensureCorrectUser, async function (req, res, next) {
-  const { username } = res.locals.user;
-
-  // const messagesFrom = await User.messagesFrom(username);
-  // const messagesTo = await User.messagesTo(username);
-  // const messages = messagesFrom + messagesTo;
+router.get("/my-messages", async function (req, res, next) {
 
   return res.render("my_messages.html");
 });

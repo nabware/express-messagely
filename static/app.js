@@ -1,7 +1,13 @@
+"use strict";
+
 const $registerForm = $("#register-form");
 const $registerButton = $("#register-button");
 const $loginForm = $("#login-form");
 const $loginButton = $("#login-button");
+
+const $messageContainer = $('#messages-to-container');
+
+const $messagesButton = $("#messages-to");
 
 /**
  * Handles register form submission.
@@ -26,11 +32,12 @@ async function handleRegisterFormSubmit(evt) {
   const data = await response.json();
   const { token } = data;
 
+  localStorage.setItem("username", username);
   localStorage.setItem("_token", token);
-  const localStorageToken = localStorage.getItem("_token");
 
-  window.location.replace(`./my-messages?_token=${localStorageToken}`);
+  window.location.replace(`/my-messages`);
 }
+$registerForm.on("submit", handleRegisterFormSubmit);
 
 /**
  * Handles login form submission.
@@ -52,11 +59,44 @@ async function handleLoginFormSubmit(evt) {
   const data = await response.json();
   const { token } = data;
 
-  localStorage.setItem("_token", token);
-  const localStorageToken = localStorage.getItem("_token");
+  localStorage.setItem("username", username);
 
-  window.location.replace(`./my-messages?_token=${localStorageToken}`);
+  localStorage.setItem("_token", token);
+
+  window.location.replace(`/my-messages`);
 }
 
-$registerForm.on("submit", handleRegisterFormSubmit);
+
+async function getMessagesTo(username, _token) {
+
+
+  const response = await fetch(`./users/${username}/to?_token=${_token}`);
+
+  const data = await response.json();
+  const { messages } = data;
+  return messages;
+}
+
+async function populateMessages() {
+  const _token = localStorage.getItem("_token");
+  const username = localStorage.getItem("username");
+
+  console.log("test");
+  const messagesTo = await getMessagesTo(username, _token);
+
+  for (const message of messagesTo) {
+    $messageContainer.append(message.body);
+  }
+}
+
+
+$messagesButton.on("click", populateMessages);
+
+
+
 $loginForm.on("submit", handleLoginFormSubmit);
+
+
+
+
+
