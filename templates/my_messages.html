@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}My Messages{% endblock %}
+
+{% block content %}
+
+<h1>My Messages</h1>
+
+{% if messages.length === 0 %}
+  <p>You have no messages.</p>
+{% else %}
+  {% for message of messages %}
+  <span>From: {{ message.body }}</span>
+    <p>{{ message.body }}</p>
+  {% endfor %}
+{% endif %}
+
+{% endblock %}
